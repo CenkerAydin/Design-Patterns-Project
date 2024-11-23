@@ -15,6 +15,9 @@ public class PluginTextEditor extends JFrame {
     private DefaultListModel<String> pluginListModel;
     private DefaultListModel<String> filesListModel;
     private File currentFile;
+    private String rootDirectory;
+    private String filesPath;
+    private String pluginsPath;
 
 
     public PluginTextEditor() {
@@ -22,6 +25,15 @@ public class PluginTextEditor extends JFrame {
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+
+        // /usr/documents/Plugin Text Editor
+        rootDirectory = System.getProperty("user.home") + File.separator +"Documents"+File.separator +"Plugin Text Editor";
+        // create files folder if not exists
+        createFilesDirectory();
+        // create plugins.txt file if not exists
+        createPluginsFile();
+        
+        
 
         // Menü Çubuğu
         JMenuBar menuBar = new JMenuBar();
@@ -98,6 +110,8 @@ public class PluginTextEditor extends JFrame {
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
         rightPanel.setPreferredSize(new Dimension(200, 600));
 
+      
+        
         // Plugin List Panel
         JPanel pluginPanel = new JPanel();
         pluginPanel.setLayout(new BorderLayout());
@@ -109,6 +123,9 @@ public class PluginTextEditor extends JFrame {
         pluginPanel.add(pluginScrollPane, BorderLayout.CENTER);
         rightPanel.add(pluginPanel);
 
+        //list plugins
+        listPlugins();
+    
         // Files and Folders Panel
         JPanel filesAndFoldersPanel = new JPanel();
         filesAndFoldersPanel.setLayout(new BorderLayout());
@@ -124,6 +141,72 @@ public class PluginTextEditor extends JFrame {
         add(rightPanel, BorderLayout.EAST);
     }
 
+    private void createFilesDirectory(){
+        File directory = new File(rootDirectory);
+        if (!directory.exists()) {
+            directory.mkdir();
+            System.out.println("Root directory created: " + directory.getPath());
+        }
+        filesPath = rootDirectory + File.separator + "files";
+        File filesDirectory = new File(filesPath);
+        if (!filesDirectory.exists()) {
+            filesDirectory.mkdir();
+            System.out.println("Files directory created: " + filesDirectory.getPath());
+        }else{
+            System.out.println("Files directory already exists: " + filesDirectory.getPath());
+        }
+    }
+
+    private void createPluginsFile(){
+        pluginsPath = rootDirectory + File.separator + "plugins.txt";
+        File plugins = new File(pluginsPath);
+        try {
+            if (!plugins.exists()) {
+                if (plugins.createNewFile()) {
+                    System.out.println("File is created: " + plugins.getPath());
+                } else {
+                    System.out.println("Plugins file could not be created!");
+                }
+            } else {
+                System.out.println("File already exists: " + plugins.getPath());
+            }
+        } catch (IOException e) {
+            System.out.println("Something went wrong: " + e.getMessage());
+        }
+    }
+    
+    private void listPlugins() {
+        File plugins = new File(pluginsPath);
+        try (BufferedReader reader = new BufferedReader(new FileReader(plugins))){
+            String line;
+            while ((line = reader.readLine()) != null){
+                pluginListModel.addElement(line);
+            }
+        }catch(Exception e){
+            System.out.println("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    private void addPLugin(String name){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(pluginsPath, true))){
+            if(name == null || name.trim().isEmpty()){
+                System.out.println("Invalid plugin name!");
+                return;
+            }
+            if(pluginListModel.contains(name)){
+                System.out.println("Plugin already exists!");
+                return;
+            }
+            File plugins = new File(pluginsPath);
+            if(plugins.length() > 0){
+                writer.newLine();
+            }
+            writer.write(name);
+            pluginListModel.addElement(name);
+        }catch(Exception e){
+            System.out.println("Something went wrong: " + e.getMessage());
+        }
+    }
     private void openFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "md", "tex"));
@@ -193,9 +276,11 @@ public class PluginTextEditor extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             String pluginName = JOptionPane.showInputDialog("Enter Plugin Name:");
-            if (pluginName != null && !pluginName.isEmpty()) {
-                pluginListModel.addElement(pluginName);
+            if (pluginName != null && !pluginName.trim().isEmpty()) {
+                addPLugin(pluginName);
                 JOptionPane.showMessageDialog(null, "Plugin " + pluginName + " loaded successfully!");
+            }else{
+                JOptionPane.showMessageDialog(null, "Invalid plugin name!");
             }
         }
     }
