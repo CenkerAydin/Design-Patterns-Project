@@ -24,6 +24,7 @@ bin/
 
 ### VS Code ###
 .vscode/
-
+.idea/material_theme_project_new.xml
+.idea/vcs.xml
 ### Mac OS ###
 .DS_Store

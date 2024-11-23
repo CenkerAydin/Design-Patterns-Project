@@ -5,7 +5,15 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class PluginTextEditor extends JFrame {
     private JTextArea textArea;
@@ -185,6 +193,22 @@ public class PluginTextEditor extends JFrame {
         }catch(Exception e){
             System.out.println("Something went wrong: " + e.getMessage());
         }
+        // Right click action
+        pluginList.addMouseListener(
+            new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    if(SwingUtilities.isRightMouseButton(e)){
+                        int index = pluginList.locationToIndex(e.getPoint());
+                        if(index != -1){
+                            pluginList.setSelectedIndex(index);
+                            String selected = pluginList.getSelectedValue();
+                            showPluginPopupMenu(e.getPoint(), selected);
+                        }
+                }
+            }
+        }
+        );
     }
 
     private void addPLugin(String name){
@@ -207,6 +231,50 @@ public class PluginTextEditor extends JFrame {
             System.out.println("Something went wrong: " + e.getMessage());
         }
     }
+    
+    private void deletePlugin(String plugin){
+        Queue<String> buffer = new LinkedList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(pluginsPath))){
+            String currentLine;
+            while((currentLine = reader.readLine()) != null){
+                if(!currentLine.equals(plugin)){
+                    buffer.add(currentLine);
+                }
+            }
+            reader.close();
+        }catch(Exception e){
+            System.out.println("Something went wrong: " + e.getMessage());
+        }
+
+        try( BufferedWriter writer = new BufferedWriter(new FileWriter(pluginsPath));){
+            while(!buffer.isEmpty()){
+                writer.write(buffer.poll());
+                if(!buffer.isEmpty()){
+                    writer.newLine();
+                }
+            }
+            writer.close();
+        }catch(IOException e){
+            System.out.println("Something went wrong: " + e.getMessage());
+        }
+        pluginListModel.removeElement(plugin);
+    }
+
+    private void showPluginPopupMenu(Point point, String plugin){
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem delete = new JMenuItem("remove");
+        delete.addActionListener(
+            new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    deletePlugin(plugin);
+                }
+            }
+        );
+        popupMenu.add(delete);
+        popupMenu.show(pluginList, point.x, point.y);
+    }
+    
     private void openFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "md", "tex"));
