@@ -1,17 +1,14 @@
-import org.w3c.dom.Document;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import renderer.FileAndFolderRenderer;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -137,16 +134,137 @@ public class PluginTextEditor extends JFrame {
         // Files and Folders Panel
         JPanel filesAndFoldersPanel = new JPanel();
         filesAndFoldersPanel.setLayout(new BorderLayout());
-        JLabel filesAndFolderLabel = new JLabel("Files and Folders:");
+
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel filesAndFolderLabel = new JLabel("Documents:");
+
+        JButton newFileButton = new JButton("📄");
+        newFileButton.setToolTipText("New File");
+
+        newFileButton.addActionListener(e -> {
+            String fileName = JOptionPane.showInputDialog("Enter file name:");
+            if (fileName != null && !fileName.trim().isEmpty()) {
+                createFile(new File(filesPath), fileName);
+            }
+        });
+
+        JButton newFolderButton = new JButton("📁");
+        newFolderButton.setToolTipText("New Folder");
+
+        newFolderButton.addActionListener(e -> {
+            String folderName = JOptionPane.showInputDialog("Enter folder name:");
+            if (folderName != null && !folderName.trim().isEmpty()) {
+                File folder = new File(filesPath, folderName);
+                if (folder.mkdir()) {
+                    System.out.println("Folder created: " + folder.getPath());
+                    listFilesAndFolders();
+                } else {
+                    System.out.println("Folder already exists: " + folder.getPath());
+                    JOptionPane.showMessageDialog(null, "Folder already exists or cannot be created.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        headerPanel.add(filesAndFolderLabel);
+        headerPanel.add(newFileButton);
+        headerPanel.add(newFolderButton);
+        
         filesListModel = new DefaultListModel<>();
         fileList = new JList<>(filesListModel);
         JScrollPane filesListScrollPane = new JScrollPane(fileList);
-        filesAndFoldersPanel.add(filesAndFolderLabel, BorderLayout.NORTH);
+        
+        filesAndFoldersPanel.add(headerPanel, BorderLayout.NORTH);
         filesAndFoldersPanel.add(filesListScrollPane, BorderLayout.CENTER);
         rightPanel.add(filesAndFoldersPanel);
 
+        //list files and folders
+        listFilesAndFolders();
+
+        //render list of files and folders
+        fileList.setCellRenderer(new FileAndFolderRenderer());
+
+        // Add mouse listener to the file list
+        addFileListMouseListener(textArea);
+
         // Add rightPanel to the main frame
         add(rightPanel, BorderLayout.EAST);
+    }
+
+    private void listFilesAndFolders(){
+        File root = new File(filesPath);
+        filesListModel.clear();
+        if(root.exists() && root.isDirectory()) {
+            File[] files = root.listFiles();
+            for (File file : files) {
+                filesListModel.addElement(file.getAbsolutePath());
+            }
+        }
+    }
+
+    private void listFilesInFolder(File folder){
+        filesListModel.clear();
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                filesListModel.addElement(file.getAbsolutePath());
+            }
+        }
+    }
+
+    private void addFileListMouseListener(JTextArea textArea){
+        fileList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if(e.getClickCount() == 2){
+                    int index = fileList.locationToIndex(e.getPoint());
+                    if(index != -1){
+                        String selectedPath = filesListModel.get(index);
+                        File selectedFile = new File(selectedPath);
+                        if(selectedFile.isDirectory()){
+                            listFilesInFolder(selectedFile);
+                        }else{
+                            readFile(selectedFile, textArea);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void createFile(File directory, String fileName){
+        File file = new File(directory, fileName);
+        try{
+            if(file.createNewFile()){
+                System.out.println("File created: " + file.getPath());
+                listFilesInFolder(directory);
+            }else{
+                System.out.println("File already exists: " + file.getPath());
+                JOptionPane.showMessageDialog(null, 
+                "File already exists or cannot be created.", 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            }
+        }catch(IOException e){
+            JOptionPane.showMessageDialog(null, 
+            "Error creating file: " + e.getMessage(), 
+            "Error", 
+            JOptionPane.ERROR_MESSAGE);
+        }
+        
+    }
+
+    private void readFile(File file , JTextArea textArea){
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))){
+            textArea.read(reader, null);
+            textArea.setCaretPosition(0);
+        }catch(IOException e){
+            System.out.println("Something went wrong: " + e.getMessage());
+            JOptionPane.showMessageDialog(
+                null,
+                "Error reading file: " + file.getName(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void createFilesDirectory(){
