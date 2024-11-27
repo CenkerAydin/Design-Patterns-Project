@@ -7,6 +7,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import command.CopyCommand;
 import command.CutCommand;
 import command.Invoker;
+import command.PasteCommand;
 import renderer.FileAndFolderRenderer;
 import strategy.export.ExportToHtmlStrategy;
 import strategy.export.ExportToLatexStrategy;
@@ -108,7 +109,9 @@ public class PluginTextEditor extends JFrame {
         });
 
         copy.addActionListener(e -> invoker.executeCommand(new CopyCommand(this)));
-        
+
+        paste.addActionListener(e -> invoker.executeCommand(new PasteCommand(this)));
+
         undo.addActionListener(e -> invoker.undo());
 
         // Theme Menu
