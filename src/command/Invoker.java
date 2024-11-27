@@ -9,7 +9,7 @@ public class Invoker {
         history = new Stack<>();
     }
     public void executeCommand(Command command) {
-        history.add(command);
+        history.push(command);
         command.execute();
     }
     public void undo() {

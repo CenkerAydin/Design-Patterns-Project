@@ -4,6 +4,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import command.CopyCommand;
 import command.CutCommand;
 import command.Invoker;
 import renderer.FileAndFolderRenderer;
@@ -106,6 +107,8 @@ public class PluginTextEditor extends JFrame {
             invoker.executeCommand(new CutCommand(this, start, end));
         });
 
+        copy.addActionListener(e -> invoker.executeCommand(new CopyCommand(this)));
+        
         undo.addActionListener(e -> invoker.undo());
 
         // Theme Menu
