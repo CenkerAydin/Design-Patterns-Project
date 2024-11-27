@@ -28,3 +28,7 @@ bin/
 .idea/vcs.xml
 ### Mac OS ###
 .DS_Store
+
+.idea/modules.xml
+.idea/misc.xml
+DesignProject.iml

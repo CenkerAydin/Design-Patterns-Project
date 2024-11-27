@@ -1,8 +1,11 @@
+package editor;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import command.CutCommand;
+import command.Invoker;
 import renderer.FileAndFolderRenderer;
 import strategy.export.ExportToHtmlStrategy;
 import strategy.export.ExportToLatexStrategy;
@@ -35,6 +38,7 @@ public class PluginTextEditor extends JFrame {
     private String filesPath;
     private String pluginsPath;
     private TextFormattingStrategy textFormattingStrategy;
+    private Invoker invoker;
 
 
 
@@ -86,11 +90,23 @@ public class PluginTextEditor extends JFrame {
         JMenuItem copy = new JMenuItem("Copy");
         JMenuItem paste = new JMenuItem("Paste");
         JMenuItem delete = new JMenuItem("Delete");
+        JMenuItem undo = new JMenuItem("Undo");
         editMenu.add(cut);
         editMenu.add(copy);
         editMenu.add(paste);
         editMenu.add(delete);
+        editMenu.add(undo);
         menuBar.add(editMenu);
+        invoker = new Invoker();
+
+        // assign commands to menu items
+        cut.addActionListener(e -> {
+            int start = textArea.getSelectionStart();
+            int end = textArea.getSelectionEnd();
+            invoker.executeCommand(new CutCommand(this, start, end));
+        });
+
+        undo.addActionListener(e -> invoker.undo());
 
         // Theme Menu
         JMenu themeMenu = new JMenu("Themes");
@@ -239,6 +255,9 @@ public class PluginTextEditor extends JFrame {
         repaint();
     }
 
+    public JTextArea getTextArea() {
+        return textArea;
+    }
 
     private void listFilesAndFolders() {
         File root = new File(filesPath);
