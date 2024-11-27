@@ -8,6 +8,8 @@ import command.CopyCommand;
 import command.CutCommand;
 import command.DeleteCommand;
 import command.Invoker;
+import command.NewFileCommand;
+import command.OpenFileCommand;
 import command.PasteCommand;
 import renderer.FileAndFolderRenderer;
 import strategy.export.ExportToHtmlStrategy;
@@ -75,7 +77,8 @@ public class PluginTextEditor extends JFrame {
         fileMenu.add(saveAsFile);
         menuBar.add(fileMenu);
 
-        openFile.addActionListener(e -> openFile());
+        newFile.addActionListener(e -> invoker.executeCommand(new NewFileCommand(this)));
+        openFile.addActionListener(e -> invoker.executeCommand(new OpenFileCommand(this)));
         saveFile.addActionListener(e -> saveFile());
         saveAsFile.addActionListener(e -> saveFileAs());
 
@@ -266,6 +269,17 @@ public class PluginTextEditor extends JFrame {
 
     public JTextArea getTextArea() {
         return textArea;
+    }
+
+    public String getFilesPath(){
+        return this.filesPath;
+    }
+
+    public File getCurrentFile() {
+        return currentFile;
+    }
+    public void setCurrentFile(File currentFile) {
+        this.currentFile = currentFile;
     }
 
     private void listFilesAndFolders() {
@@ -590,20 +604,7 @@ public class PluginTextEditor extends JFrame {
         popupMenu.show(pluginList, point.x, point.y);
     }
 
-    private void openFile() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "md", "tex"));
-        int option = fileChooser.showOpenDialog(this);
-        if (option == JFileChooser.APPROVE_OPTION) {
-            currentFile = fileChooser.getSelectedFile();
-            try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
-                textArea.read(reader, null);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error opening file!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
+   
     // Save file method
     private void saveFile() {
         if (currentFile != null) {
