@@ -11,6 +11,8 @@ import command.Invoker;
 import command.NewFileCommand;
 import command.OpenFileCommand;
 import command.PasteCommand;
+import command.SaveAsFileCommand;
+import command.SaveFileCommand;
 import renderer.FileAndFolderRenderer;
 import strategy.export.ExportToHtmlStrategy;
 import strategy.export.ExportToLatexStrategy;
@@ -79,8 +81,8 @@ public class PluginTextEditor extends JFrame {
 
         newFile.addActionListener(e -> invoker.executeCommand(new NewFileCommand(this)));
         openFile.addActionListener(e -> invoker.executeCommand(new OpenFileCommand(this)));
-        saveFile.addActionListener(e -> saveFile());
-        saveAsFile.addActionListener(e -> saveFileAs());
+        saveFile.addActionListener(e -> invoker.executeCommand(new SaveFileCommand(this)));
+        saveAsFile.addActionListener(e -> invoker.executeCommand(new SaveAsFileCommand(this)));
 
 
         // Plugin Menu
@@ -605,7 +607,7 @@ public class PluginTextEditor extends JFrame {
     }
 
    
-    // Save file method
+    /*// Save file method
     private void saveFile() {
         if (currentFile != null) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(currentFile))) {
@@ -616,7 +618,7 @@ public class PluginTextEditor extends JFrame {
         } else {
             saveFileAs();
         }
-    }
+    }*/
 
     // Save As file method
     private void saveFileAs() {
