@@ -7,6 +7,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import command.CopyCommand;
 import command.CutCommand;
 import command.DeleteCommand;
+import command.FindCommand;
 import command.Invoker;
 import command.NewFileCommand;
 import command.OpenFileCommand;
@@ -98,11 +99,13 @@ public class PluginTextEditor extends JFrame {
         JMenuItem copy = new JMenuItem("Copy");
         JMenuItem paste = new JMenuItem("Paste");
         JMenuItem delete = new JMenuItem("Delete");
+        JMenuItem find = new JMenuItem("Find");
         JMenuItem undo = new JMenuItem("Undo");
         editMenu.add(cut);
         editMenu.add(copy);
         editMenu.add(paste);
         editMenu.add(delete);
+        editMenu.add(find);
         editMenu.add(undo);
         menuBar.add(editMenu);
         invoker = new Invoker();
@@ -119,6 +122,8 @@ public class PluginTextEditor extends JFrame {
         paste.addActionListener(e -> invoker.executeCommand(new PasteCommand(this)));
 
         delete.addActionListener(e -> invoker.executeCommand(new DeleteCommand(this)));
+
+        find.addActionListener(e -> invoker.executeCommand(new FindCommand(this)));
 
         undo.addActionListener(e -> invoker.undo());
 
