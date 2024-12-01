@@ -14,6 +14,7 @@ import command.OpenFileCommand;
 import command.PasteCommand;
 import command.SaveAsFileCommand;
 import command.SaveFileCommand;
+import factory.LaTeXPluginFactory;
 import factory.MarkdownPluginFactory;
 import factory.Plugin;
 import factory.PluginFactory;
@@ -418,24 +419,33 @@ public class PluginTextEditor extends JFrame {
         pluginList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
                     int index = pluginList.locationToIndex(e.getPoint());
                     if (index != -1) {
                         pluginList.setSelectedIndex(index);
                         String selected = pluginList.getSelectedValue();
-                        showPluginPopupMenu(e.getPoint(), selected);
 
                         PluginFactory factory;
 
                         switch (selected) {
                             case "Markdown":
-                                factory = new MarkdownPluginFactory(PluginTextEditor.this , PluginTextEditor.this);
+                                factory = new MarkdownPluginFactory(PluginTextEditor.this);
+                                break;
+                            case "LaTeX":
+                                factory = new LaTeXPluginFactory(PluginTextEditor.this);
                                 break;
                             default:
                                 throw new IllegalArgumentException("Unknown selected plugin: " + selected);
                         }
                         Plugin plugin = factory.createPlugin();
                         plugin.enablePreview();
+                    }
+                }else if(SwingUtilities.isRightMouseButton(e)){
+                    int index = pluginList.locationToIndex(e.getPoint());
+                    if (index != -1) {
+                        pluginList.setSelectedIndex(index);
+                        String selected = pluginList.getSelectedValue();
+                        showPluginPopupMenu(e.getPoint(), selected);
                     }
                 }
             }
