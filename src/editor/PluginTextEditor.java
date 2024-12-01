@@ -14,6 +14,9 @@ import command.OpenFileCommand;
 import command.PasteCommand;
 import command.SaveAsFileCommand;
 import command.SaveFileCommand;
+import factory.MarkdownPluginFactory;
+import factory.Plugin;
+import factory.PluginFactory;
 import renderer.FileAndFolderRenderer;
 import strategy.export.ExportToHtmlStrategy;
 import strategy.export.ExportToLatexStrategy;
@@ -55,7 +58,7 @@ public class PluginTextEditor extends JFrame {
     }
 
     // Method to initialize all the components
-    private void initializeUI() {
+    public void initializeUI() {
         setTitle("Plugin-Based Text Editor");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -422,130 +425,22 @@ public class PluginTextEditor extends JFrame {
                         String selected = pluginList.getSelectedValue();
                         showPluginPopupMenu(e.getPoint(), selected);
 
-                        // Markdown seçildiğinde preview görünümünü etkinleştir
-                        if ("Markdown".equalsIgnoreCase(selected)) {
-                            enableMarkdownPreview();
+                        PluginFactory factory;
+
+                        switch (selected) {
+                            case "Markdown":
+                                factory = new MarkdownPluginFactory(PluginTextEditor.this , PluginTextEditor.this);
+                                break;
+                            default:
+                                throw new IllegalArgumentException("Unknown selected plugin: " + selected);
                         }
+                        Plugin plugin = factory.createPlugin();
+                        plugin.enablePreview();
                     }
                 }
             }
         });
     }
-
-    private void enableMarkdownPreview() {
-        // Mevcut görünümü temizleyip iki alanlı yapıyı oluştur
-        getContentPane().removeAll();
-
-        // Yazma alanı
-        JTextArea writingArea = new JTextArea();
-        writingArea.setLineWrap(true);
-        writingArea.setWrapStyleWord(true);
-        JScrollPane writingScrollPane = new JScrollPane(writingArea);
-
-        // Önizleme alanı
-        JTextArea previewArea = new JTextArea();
-        previewArea.setEditable(false); // Düzenlenemez
-        JScrollPane previewScrollPane = new JScrollPane(previewArea);
-
-        // Yazma alanına her değişiklik yapıldığında önizleme alanını güncelle
-        writingArea.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                updatePreview(writingArea, previewArea);
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                updatePreview(writingArea, previewArea);
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                updatePreview(writingArea, previewArea);
-            }
-        });
-
-        // Split Pane (İkiye bölmek için)
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, writingScrollPane, previewScrollPane);
-        splitPane.setDividerLocation(400);
-
-        // Çıkış butonu
-        JButton exitButton = new JButton("Çıkış");
-        exitButton.addActionListener(e -> exitMarkdownPreview());
-
-        // Yeni görünümü ekleyin
-        add(splitPane, BorderLayout.CENTER);
-        add(exitButton, BorderLayout.SOUTH); // Çıkış butonunu alt kısma ekleyin
-        setJMenuBar(getJMenuBar());  // Menü çubuğunu tekrar ekleyin
-        revalidate();
-        repaint();
-    }
-
-    // Çıkış butonuna basıldığında varsayılan görünüme geri dönen metot
-    private void exitMarkdownPreview() {
-        // Clear the content pane before re-adding components
-        getContentPane().removeAll();
-
-        // Reinitialize the UI components
-        initializeUI();
-
-        // Optionally, re-add other components or settings
-        revalidate();
-        repaint();
-    }
-
-
-
-
-    // Markdown'u önizleme alanına dönüştürmek için kullanılan bir işlev
-    private void updatePreview(JTextArea writingArea, JTextArea previewArea) {
-        String text = writingArea.getText();
-        String formattedText = convertMarkdownToHtml(text); // Markdown'u HTML'e dönüştürme
-        previewArea.setText(formattedText);
-    }
-
-    // Markdown'u basitçe HTML'e çeviren örnek işlev
-    private String convertMarkdownToHtml(String markdownText) {
-        // Başlıklar
-        markdownText = markdownText.replaceAll("###### (.*)", "<h6>$1</h6>");
-        markdownText = markdownText.replaceAll("##### (.*)", "<h5>$1</h5>");
-        markdownText = markdownText.replaceAll("#### (.*)", "<h4>$1</h4>");
-        markdownText = markdownText.replaceAll("### (.*)", "<h3>$1</h3>");
-        markdownText = markdownText.replaceAll("## (.*)", "<h2>$1</h2>");
-        markdownText = markdownText.replaceAll("# (.*)", "<h1>$1</h1>");
-
-        // Kalın ve italik metin
-        markdownText = markdownText.replaceAll("\\*\\*([^*]+)\\*\\*", "<b>$1</b>"); // **kalın**
-        markdownText = markdownText.replaceAll("__(.+?)__", "<b>$1</b>"); // __kalın__
-        markdownText = markdownText.replaceAll("\\*([^*]+)\\*", "<i>$1</i>"); // *italik*
-        markdownText = markdownText.replaceAll("_(.+?)_", "<i>$1</i>"); // _italik_
-
-        // Satır içi kod
-        markdownText = markdownText.replaceAll("`([^`]+)`", "<code>$1</code>"); // `kod`
-
-        // Bağlantılar
-        markdownText = markdownText.replaceAll("\\[(.+?)\\]\\((https?://[^\\s]+)\\)", "<a href='$2'>$1</a>");
-
-        // Yatay çizgi
-        markdownText = markdownText.replaceAll("(?m)^---$", "<hr>");
-
-        // Sırasız listeler
-        markdownText = markdownText.replaceAll("(?m)^\\* (.*)", "<ul><li>$1</li></ul>");
-        markdownText = markdownText.replaceAll("(?m)^- (.*)", "<ul><li>$1</li></ul>");
-
-        // Sıralı listeler
-        markdownText = markdownText.replaceAll("(?m)^\\d+\\. (.*)", "<ol><li>$1</li></ol>");
-
-        // Yeni satırları <br> ile değiştirme
-        markdownText = markdownText.replaceAll("\n", "<br>");
-
-        // Listeleri düzgün göstermek için gereksiz <ul> veya <ol> etiketlerini düzeltme
-        markdownText = markdownText.replaceAll("</ul><ul>", "");
-        markdownText = markdownText.replaceAll("</ol><ol>", "");
-
-        return markdownText;
-    }
-
 
     private void addPLugin(String name) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(pluginsPath, true))) {
@@ -612,33 +507,6 @@ public class PluginTextEditor extends JFrame {
     }
 
    
-    /*// Save file method
-    private void saveFile() {
-        if (currentFile != null) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(currentFile))) {
-                textArea.write(writer);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error saving file!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } else {
-            saveFileAs();
-        }
-    }*/
-
-    // Save As file method
-    private void saveFileAs() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "md", "tex"));
-        int option = fileChooser.showSaveDialog(this);
-        if (option == JFileChooser.APPROVE_OPTION) {
-            currentFile = fileChooser.getSelectedFile();
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(currentFile))) {
-                textArea.write(writer);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error saving file!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
 
     // Plugin Yükleme İşlemi
     private class LoadPluginActionListener implements ActionListener {
