@@ -1,7 +1,6 @@
 package factory;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -12,17 +11,15 @@ import java.awt.BorderLayout;
 import editor.PluginTextEditor;
 
 public class MarkdownPlugin implements Plugin {
-    private JFrame frame;
     private PluginTextEditor editor;
 
-    public MarkdownPlugin(JFrame frame , PluginTextEditor textEditor) {
-        this.frame = frame;
+    public MarkdownPlugin(PluginTextEditor textEditor) {
         this.editor = textEditor;
     }
 
     @Override
     public void enablePreview() {
-        frame.getContentPane().removeAll();
+        editor.getContentPane().removeAll();
 
         JTextArea textArea = new JTextArea();
         textArea.setLineWrap(true);
@@ -52,11 +49,11 @@ public class MarkdownPlugin implements Plugin {
 
         JButton exit = new JButton("Exit");
         exit.addActionListener(e -> exitPreview());
-        frame.add(splitPane,BorderLayout.CENTER);
-        frame.add(exit,BorderLayout.SOUTH);
-        frame.setJMenuBar(frame.getJMenuBar());
-        frame.revalidate();
-        frame.repaint();
+        editor.add(splitPane,BorderLayout.CENTER);
+        editor.add(exit,BorderLayout.SOUTH);
+        editor.setJMenuBar(editor.getJMenuBar());
+        editor.revalidate();
+        editor.repaint();
         
     }
     @Override
@@ -68,10 +65,10 @@ public class MarkdownPlugin implements Plugin {
 
     @Override
     public void exitPreview() {
-        frame.getContentPane().removeAll();
+        editor.getContentPane().removeAll();
         editor.initializeUI();// to initialize the UI
-        frame.revalidate();
-        frame.repaint();
+        editor.revalidate();
+        editor.repaint();
     }
 
     private String convertMarkdownToHtml(String markdownText) {
