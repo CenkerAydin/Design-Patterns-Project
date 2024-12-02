@@ -24,7 +24,6 @@ import strategy.theme.DarkThemeStrategy;
 import strategy.theme.LightThemeStrategy;
 import strategy.theme.SolarizedThemeStrategy;
 import strategy.theme.ThemeStrategy;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -106,7 +105,7 @@ public class PluginTextEditor extends JFrame {
         editMenu.add(find);
         editMenu.add(undo);
         menuBar.add(editMenu);
-        invoker = new Invoker();
+        invoker = Invoker.getInstance();
 
         // assign commands to menu items
         cut.addActionListener(e -> {
