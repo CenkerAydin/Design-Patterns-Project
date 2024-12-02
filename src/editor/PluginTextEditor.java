@@ -1,9 +1,5 @@
 package editor;
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import command.CopyCommand;
 import command.CutCommand;
 import command.DeleteCommand;
@@ -40,7 +36,6 @@ import java.util.Queue;
 
 public class PluginTextEditor extends JFrame {
     private JTextArea textArea;
-    private JComboBox<String> themeComboBox;
     private JList<String> pluginList;
     private JList<String> fileList;
     private DefaultListModel<String> pluginListModel;
@@ -49,7 +44,6 @@ public class PluginTextEditor extends JFrame {
     private String rootDirectory;
     private String filesPath;
     private String pluginsPath;
-    private TextFormattingStrategy textFormattingStrategy;
     private Invoker invoker;
 
 
@@ -298,6 +292,7 @@ public class PluginTextEditor extends JFrame {
         filesListModel.clear();
         if (root.exists() && root.isDirectory()) {
             File[] files = root.listFiles();
+            assert files != null;
             for (File file : files) {
                 filesListModel.addElement(file.getAbsolutePath());
             }
@@ -425,18 +420,12 @@ public class PluginTextEditor extends JFrame {
                         pluginList.setSelectedIndex(index);
                         String selected = pluginList.getSelectedValue();
 
-                        PluginFactory factory;
+                        PluginFactory factory = switch (selected) {
+                            case "Markdown" -> MarkdownPluginFactory.getInstance(PluginTextEditor.this);
+                            case "LaTeX" -> LaTeXPluginFactory.getInstance(PluginTextEditor.this);
+                            default -> throw new IllegalArgumentException("Unknown selected plugin: " + selected);
+                        };
 
-                        switch (selected) {
-                            case "Markdown":
-                                factory = new MarkdownPluginFactory(PluginTextEditor.this);
-                                break;
-                            case "LaTeX":
-                                factory = new LaTeXPluginFactory(PluginTextEditor.this);
-                                break;
-                            default:
-                                throw new IllegalArgumentException("Unknown selected plugin: " + selected);
-                        }
                         Plugin plugin = factory.createPlugin();
                         plugin.enablePreview();
                     }
@@ -482,19 +471,17 @@ public class PluginTextEditor extends JFrame {
                     buffer.add(currentLine);
                 }
             }
-            reader.close();
         } catch (Exception e) {
             System.out.println("Something went wrong: " + e.getMessage());
         }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(pluginsPath));) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(pluginsPath))) {
             while (!buffer.isEmpty()) {
                 writer.write(buffer.poll());
                 if (!buffer.isEmpty()) {
                     writer.newLine();
                 }
             }
-            writer.close();
         } catch (IOException e) {
             System.out.println("Something went wrong: " + e.getMessage());
         }
@@ -537,9 +524,8 @@ public class PluginTextEditor extends JFrame {
     }
 
     private void applyTextFormatting(TextFormattingStrategy strategy) {
-        this.textFormattingStrategy = strategy;
-        if (textFormattingStrategy != null) {
-            textFormattingStrategy.applyStyle(textArea);
+        if (strategy != null) {
+            strategy.applyStyle(textArea);
         }
     }
     private void applyExportStrategy(TextExportStrategy strategy) {
