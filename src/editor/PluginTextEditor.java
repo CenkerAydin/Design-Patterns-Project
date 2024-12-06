@@ -44,6 +44,9 @@ public class PluginTextEditor extends JFrame {
     private String filesPath;
     private String pluginsPath;
     private Invoker invoker;
+    private TextExportStrategy textExportStrategy;
+    private TextFormattingStrategy textFormattingStrategy;
+    private ThemeStrategy themeStrategy;
 
 
 
@@ -185,7 +188,7 @@ public class PluginTextEditor extends JFrame {
         exportMenu.add(exportHtml);
         menuBar.add(exportMenu);
 
-
+        
         // Main Text Area
         textArea = new JTextArea();
         textArea.setLineWrap(true);
@@ -502,7 +505,33 @@ public class PluginTextEditor extends JFrame {
         popupMenu.show(pluginList, point.x, point.y);
     }
 
-   
+    /*private void showWelcomePanel() {
+        JPanel welcomePanel = new JPanel();
+        welcomePanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.gridx = 0;
+        gbc.gridy = GridBagConstraints.RELATIVE;
+    
+        JLabel titleLabel = new JLabel("Welcome", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        welcomePanel.add(titleLabel, gbc);
+    
+        JButton openFileButton = new JButton("Open File");
+        JButton newFileButton = new JButton("New File");
+        
+        openFileButton.setPreferredSize(new Dimension(200, 40));
+        newFileButton.setPreferredSize(new Dimension(200, 40));
+    
+        openFileButton.addActionListener(e -> invoker.executeCommand(new OpenFileCommand(this)));
+        newFileButton.addActionListener(e -> invoker.executeCommand(new NewFileCommand(this)));
+    
+        welcomePanel.add(openFileButton, gbc);
+        welcomePanel.add(newFileButton, gbc);
+    
+        // Add the welcome panel to the center of the BorderLayout
+        add(welcomePanel, BorderLayout.CENTER);
+    }*/
 
     // Plugin Yükleme İşlemi
     private class LoadPluginActionListener implements ActionListener {
@@ -519,16 +548,23 @@ public class PluginTextEditor extends JFrame {
     }
 
     private void applyTheme(ThemeStrategy themeStrategy) {
-        themeStrategy.applyTheme(textArea, this);
+        if (themeStrategy != null) {
+            this.themeStrategy = themeStrategy;
+            this.themeStrategy.applyTheme(textArea , this);
+        }
     }
 
     private void applyTextFormatting(TextFormattingStrategy strategy) {
         if (strategy != null) {
-            strategy.applyStyle(textArea);
+            this.textFormattingStrategy = strategy;
+            this.textFormattingStrategy.applyStyle(textArea);
         }
     }
     private void applyExportStrategy(TextExportStrategy strategy) {
-        strategy.exportText(textArea);
+        if (strategy != null) {
+            this.textExportStrategy = strategy;
+            this.textExportStrategy.exportText(textArea);
+        }
     }
 
 
