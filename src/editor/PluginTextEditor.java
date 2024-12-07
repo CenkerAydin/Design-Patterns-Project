@@ -50,6 +50,13 @@ public class PluginTextEditor extends JFrame {
 
 
 
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            PluginTextEditor editor = new PluginTextEditor();
+            editor.setVisible(true);
+        });
+    }
+
     public PluginTextEditor() {
         initializeUI();  // Calls the method to initialize UI components
     }
@@ -412,7 +419,6 @@ public class PluginTextEditor extends JFrame {
             System.out.println("Something went wrong: " + e.getMessage());
         }
 
-        // Sağ tıklama işlemi
         pluginList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -505,35 +511,6 @@ public class PluginTextEditor extends JFrame {
         popupMenu.show(pluginList, point.x, point.y);
     }
 
-    /*private void showWelcomePanel() {
-        JPanel welcomePanel = new JPanel();
-        welcomePanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.gridx = 0;
-        gbc.gridy = GridBagConstraints.RELATIVE;
-    
-        JLabel titleLabel = new JLabel("Welcome", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        welcomePanel.add(titleLabel, gbc);
-    
-        JButton openFileButton = new JButton("Open File");
-        JButton newFileButton = new JButton("New File");
-        
-        openFileButton.setPreferredSize(new Dimension(200, 40));
-        newFileButton.setPreferredSize(new Dimension(200, 40));
-    
-        openFileButton.addActionListener(e -> invoker.executeCommand(new OpenFileCommand(this)));
-        newFileButton.addActionListener(e -> invoker.executeCommand(new NewFileCommand(this)));
-    
-        welcomePanel.add(openFileButton, gbc);
-        welcomePanel.add(newFileButton, gbc);
-    
-        // Add the welcome panel to the center of the BorderLayout
-        add(welcomePanel, BorderLayout.CENTER);
-    }*/
-
-    // Plugin Yükleme İşlemi
     private class LoadPluginActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -566,13 +543,5 @@ public class PluginTextEditor extends JFrame {
             this.textExportStrategy.exportText(textArea);
         }
     }
-
-
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            PluginTextEditor editor = new PluginTextEditor();
-            editor.setVisible(true);
-        });
-    }
+    
 }
